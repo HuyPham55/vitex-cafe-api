@@ -1,8 +1,5 @@
 {
   "version": 2,
-  "env": {
-    "TZ": "Asia/Ho_Chi_Minh"
-  },
   "builds": [
     {
       "src": "index.js",
