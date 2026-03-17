@@ -1,0 +1,5 @@
+/uploads/*
+/.idea/*
+/api-server/.env
+.env*
+node_modules/

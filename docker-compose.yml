@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: vitex_cafe_mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - vitex_cafe_net
+    restart: always
+
+  api:
+    build: .
+    container_name: vitex_cafe_api
+    ports:
+      - "5000:5000"
+    environment:
+      - MONGODB_URI=mongodb://mongodb:27017/vitexCafe
+      - PORT=5000
+    depends_on:
+      - mongodb
+    volumes:
+      # Mount the current directory onto the container to allow live reloading
+      - .:/usr/src/app
+      # Anonymous volume so the host's node_modules don't overwrite the container's
+      - /usr/src/app/node_modules
+      # Persist uploads
+      - ./uploads:/usr/src/app/uploads
+    networks:
+      - vitex_cafe_net
+
+volumes:
+  # Named volume for database persistence
+  mongodb_data:
+
+
+networks:
+  vitex_cafe_net:
