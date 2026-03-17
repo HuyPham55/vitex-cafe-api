@@ -1,3 +1,4 @@
+process.env.TZ = 'Asia/Ho_Chi_Minh';
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 require('dotenv').config();

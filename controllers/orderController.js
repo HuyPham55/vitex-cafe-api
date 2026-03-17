@@ -8,8 +8,7 @@ const createOrder = async (req, res) => {
     try {
         const settings = await StoreSettings.findOne();
         const now = new Date();
-        const vietnamTime = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Ho_Chi_Minh' }));
-        const currentTime = vietnamTime.getHours() * 60 + vietnamTime.getMinutes();
+        const currentTime = now.getHours() * 60 + now.getMinutes();
 
         // Check if store is open
         if (settings) {
