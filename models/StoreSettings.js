@@ -9,7 +9,7 @@ const storeSettingsSchema = new mongoose.Schema(
         adminPasswordHash: { type: String, required: true },
         heroImages: { type: [String], default: [] },
         galleryImages: { type: [String], default: [] },
-        currencySymbol: { type: String, default: '₫' },
+        currencySymbol: { type: String, default: '$' },
     },
     { timestamps: true }
 );
