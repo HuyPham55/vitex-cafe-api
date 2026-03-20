@@ -4,12 +4,15 @@ const {
     createOrder,
     getOrders,
     getOrderById,
+    getOrderByNumber,
     updatePaymentStatus,
     updateOrderStatus,
 } = require('../controllers/orderController');
 const { protect } = require('../middleware/authMiddleware');
 
 router.get('/active', getOrders); // Public route for live status
+router.get('/lookup/:orderNumber', getOrderByNumber);
+
 router.route('/')
     .get(protect, getOrders)
     .post(createOrder);

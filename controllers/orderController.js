@@ -99,10 +99,24 @@ const updateOrderStatus = async (req, res) => {
     }
 };
 
+// @desc    Get order by number
+// @route   GET /api/orders/lookup/:orderNumber
+// @access  Public
+const getOrderByNumber = async (req, res) => {
+    try {
+        const order = await Order.findOne({ orderNumber: req.params.orderNumber });
+        if (!order) return res.status(404).json({ message: 'Order not found' });
+        res.json(order);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 module.exports = {
     createOrder,
     getOrders,
     getOrderById,
+    getOrderByNumber,
     updatePaymentStatus,
     updateOrderStatus,
 };
