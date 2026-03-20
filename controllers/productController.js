@@ -6,7 +6,7 @@ const { put } = require('@vercel/blob');
 // @access  Public
 const getProducts = async (req, res) => {
     try {
-        const products = await Product.find().populate('variantTypes');
+        const products = await Product.find().populate('variantTypes').sort({ order: 1, createdAt: -1 });
         res.json(products);
     } catch (err) {
         console.error(err.message);
