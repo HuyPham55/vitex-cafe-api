@@ -10,6 +10,7 @@ const storeSettingsSchema = new mongoose.Schema(
         heroImages: { type: [String], default: [] },
         galleryImages: { type: [String], default: [] },
         currencySymbol: { type: String, default: '$' },
+        paymentQRCode: { type: String },
     },
     { timestamps: true }
 );

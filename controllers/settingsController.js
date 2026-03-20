@@ -59,6 +59,17 @@ const updateSettings = async (req, res) => {
             })
         );
         settings.galleryImages = [...existingGalleryImages, ...newGalleryImages];
+        
+        // Handle payment QR code
+        if (req.files?.paymentQRCode) {
+            const file = req.files.paymentQRCode[0];
+            const blob = await put(file.originalname, file.buffer, {
+                access: 'public',
+            });
+            settings.paymentQRCode = blob.url;
+        } else if (req.body.removePaymentQRCode === 'true') {
+            settings.paymentQRCode = null;
+        }
 
             const savedSettings = await settings.save();
             res.json(savedSettings);
