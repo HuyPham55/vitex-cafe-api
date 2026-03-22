@@ -14,6 +14,9 @@ const storeSettingsSchema = new mongoose.Schema(
         logo: { type: String },
         favicon: { type: String },
         footerDescription: { type: String, default: 'Experience the best coffee in town. We roast our own beans and craft each cup with care.' },
+        contactEmail: { type: String, default: 'hello@dailygrind.com' },
+        contactPhone: { type: String, default: '(555) 123-4567' },
+        contactLocation: { type: String, default: '123 Brew St, Bean City' },
     },
     { timestamps: true }
 );
