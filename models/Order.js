@@ -44,6 +44,7 @@ const orderSchema = new mongoose.Schema(
             default: 'pending',
         },
         paymentDescription: String,
+        isAnonymous: { type: Boolean, default: false },
     },
     { timestamps: true }
 );
