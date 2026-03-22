@@ -21,10 +21,10 @@ const orderSchema = new mongoose.Schema(
                 name: String,
                 quantity: { type: Number, default: 1 },
                 price: { type: Number, required: true },
-                selectedVariants: [
+                variantOptions: [
                     {
-                        variantType: String,
-                        option: String,
+                        name: String,
+                        selectedOption: String,
                         priceModifier: { type: Number, default: 0 },
                     },
                 ],
