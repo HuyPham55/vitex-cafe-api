@@ -138,6 +138,26 @@ const getOrderByNumber = async (req, res) => {
     }
 };
 
+// @desc    Customer self-report payment
+// @route   POST /api/orders/:id/self-pay
+// @access  Public
+const selfPay = async (req, res) => {
+    try {
+        const order = await Order.findById(req.params.id);
+        if (!order) return res.status(404).json({ message: 'Order not found' });
+
+        if (order.paymentStatus === 'paid') {
+            return res.json(order); // Already paid, just return
+        }
+
+        order.paymentStatus = 'paid';
+        const updatedOrder = await order.save();
+        res.json(updatedOrder);
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+};
+
 module.exports = {
     createOrder,
     getOrders,
@@ -145,4 +165,5 @@ module.exports = {
     getOrderByNumber,
     updatePaymentStatus,
     updateOrderStatus,
+    selfPay,
 };
