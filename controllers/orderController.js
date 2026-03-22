@@ -22,12 +22,13 @@ const createOrder = async (req, res) => {
             }
         }
 
-        const { customerName, items, note, total } = req.body;
+        const { customerName, items, note, total, isAnonymous } = req.body;
         const order = new Order({
             customerName,
             items,
             note,
             total,
+            isAnonymous: !!isAnonymous,
             paymentDescription: settings ? settings.paymentDescription : '',
         });
 
@@ -48,6 +49,19 @@ const getOrders = async (req, res) => {
             filter.status = { $in: req.query.status.split(',') };
         }
         const orders = await Order.find(filter).sort({ createdAt: -1 });
+
+        // Mask names for unauthenticated requests (public live status)
+        if (!req.user) {
+            const maskedOrders = orders.map(order => {
+                if (order.isAnonymous) {
+                    const orderObj = order.toObject();
+                    return { ...orderObj, customerName: 'Anonymous' };
+                }
+                return order;
+            });
+            return res.json(maskedOrders);
+        }
+
         res.json(orders);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -61,6 +75,12 @@ const getOrderById = async (req, res) => {
     try {
         const order = await Order.findById(req.params.id);
         if (!order) return res.status(404).json({ message: 'Order not found' });
+
+        // Mask name if anonymous and not admin
+        if (order.isAnonymous && !req.user) {
+            const orderObj = order.toObject();
+            return res.json({ ...orderObj, customerName: 'Anonymous' });
+        }
         res.json(order);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -106,6 +126,12 @@ const getOrderByNumber = async (req, res) => {
     try {
         const order = await Order.findOne({ orderNumber: req.params.orderNumber });
         if (!order) return res.status(404).json({ message: 'Order not found' });
+
+        // Mask name if anonymous and not admin
+        if (order.isAnonymous && !req.user) {
+            const orderObj = order.toObject();
+            return res.json({ ...orderObj, customerName: 'Anonymous' });
+        }
         res.json(order);
     } catch (error) {
         res.status(500).json({ message: error.message });
