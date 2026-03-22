@@ -71,6 +71,30 @@ const updateSettings = async (req, res) => {
             settings.paymentQRCode = null;
         }
 
+        // Handle logo
+        if (req.files?.logo) {
+            const file = req.files.logo[0];
+            const blob = await put(file.originalname, file.buffer, {
+                access: 'public',
+                allowOverwrite: true,
+            });
+            settings.logo = blob.url;
+        } else if (req.body.removeLogo === 'true') {
+            settings.logo = null;
+        }
+
+        // Handle favicon
+        if (req.files?.favicon) {
+            const file = req.files.favicon[0];
+            const blob = await put(file.originalname, file.buffer, {
+                access: 'public',
+                allowOverwrite: true,
+            });
+            settings.favicon = blob.url;
+        } else if (req.body.removeFavicon === 'true') {
+            settings.favicon = null;
+        }
+
             const savedSettings = await settings.save();
             res.json(savedSettings);
     } catch (error) {

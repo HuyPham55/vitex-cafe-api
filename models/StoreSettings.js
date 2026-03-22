@@ -11,6 +11,8 @@ const storeSettingsSchema = new mongoose.Schema(
         galleryImages: { type: [String], default: [] },
         currencySymbol: { type: String, default: '$' },
         paymentQRCode: { type: String },
+        logo: { type: String },
+        favicon: { type: String },
     },
     { timestamps: true }
 );
