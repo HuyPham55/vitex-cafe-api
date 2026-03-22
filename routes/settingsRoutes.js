@@ -9,7 +9,9 @@ router.route('/')
     .put(protect, imageUpload.fields([
         { name: 'newHeroImages', maxCount: 5 },
         { name: 'newGalleryImages', maxCount: 10 },
-        { name: 'paymentQRCode', maxCount: 1 }
+        { name: 'paymentQRCode', maxCount: 1 },
+        { name: 'logo', maxCount: 1 },
+        { name: 'favicon', maxCount: 1 }
     ]), updateSettings);
 
 module.exports = router;
