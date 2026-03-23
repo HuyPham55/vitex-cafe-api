@@ -17,6 +17,8 @@ const storeSettingsSchema = new mongoose.Schema(
         contactEmail: { type: String, default: 'hello@dailygrind.com' },
         contactPhone: { type: String, default: '(555) 123-4567' },
         contactLocation: { type: String, default: '123 Brew St, Bean City' },
+        asmrTitle: { type: String, default: 'ASMR Brews' },
+        asmrDescription: { type: String, default: 'Immerse yourself in the rhythmic symphony of coffee craftsmanship. From the gentle hiss of steam to the crunch of freshly ground beans.' },
     },
     { timestamps: true }
 );
