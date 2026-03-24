@@ -44,6 +44,8 @@ const orderSchema = new mongoose.Schema(
             default: 'pending',
         },
         paymentDescription: String,
+        isPreOrder: { type: Boolean, default: false },
+        estimatedDeliveryDate: { type: Date },
         isAnonymous: { type: Boolean, default: false },
     },
     { timestamps: true }

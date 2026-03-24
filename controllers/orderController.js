@@ -1,5 +1,46 @@
 const Order = require('../models/Order');
+const Product = require('../models/Product');
 const StoreSettings = require('../models/StoreSettings');
+
+// Helper: get next available date for a product given its availableDays and store hours
+function getNextAvailableDate(availableDays, openTime, closeTime) {
+    const now = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Ho_Chi_Minh' }));
+    const currentDay = now.getDay(); // 0=Sun, 6=Sat
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+    const [openH, openM] = openTime.split(':').map(Number);
+    const [closeH, closeM] = closeTime.split(':').map(Number);
+    const openMinutes = openH * 60 + openM;
+    const closeMinutes = closeH * 60 + closeM;
+
+    // Check if today is available and still within store hours
+    if (availableDays.includes(currentDay) && currentMinutes >= openMinutes && currentMinutes <= closeMinutes) {
+        return null; // Available right now
+    }
+
+    // Find the next available day
+    for (let offset = 0; offset <= 7; offset++) {
+        const checkDay = (currentDay + offset) % 7;
+        if (availableDays.includes(checkDay)) {
+            // If it's today but we're past close time or before open, skip to next occurrence
+            if (offset === 0 && (currentMinutes > closeMinutes || currentMinutes < openMinutes)) {
+                // If before open time today, it's available later today
+                if (currentMinutes < openMinutes) {
+                    const nextDate = new Date(now);
+                    nextDate.setHours(openH, openM, 0, 0);
+                    return nextDate;
+                }
+                continue; // Past close time, skip to next day
+            }
+            if (offset === 0) continue; // Already checked above
+            const nextDate = new Date(now);
+            nextDate.setDate(nextDate.getDate() + offset);
+            nextDate.setHours(openH, openM, 0, 0);
+            return nextDate;
+        }
+    }
+    return null;
+}
 
 // @desc    Create new order
 // @route   POST /api/orders
@@ -7,28 +48,53 @@ const StoreSettings = require('../models/StoreSettings');
 const createOrder = async (req, res) => {
     try {
         const settings = await StoreSettings.findOne();
-        const now = new Date();
-        const currentTime = now.getHours() * 60 + now.getMinutes();
+        const { customerName, items, note, total, isAnonymous } = req.body;
 
-        // Check if store is open
-        if (settings) {
-            const [openH, openM] = settings.openTime.split(':').map(Number);
-            const [closeH, closeM] = settings.closeTime.split(':').map(Number);
-            const openMinutes = openH * 60 + openM;
-            const closeMinutes = closeH * 60 + closeM;
+        // Check stock status for all items
+        const productIds = items.map(item => item.product);
+        const products = await Product.find({ _id: { $in: productIds } });
+        const productMap = {};
+        products.forEach(p => { productMap[p._id.toString()] = p; });
 
-            if (currentTime < openMinutes || currentTime > closeMinutes) {
-                return res.status(400).json({ message: 'Store is currently closed' });
+        for (const item of items) {
+            const product = productMap[item.product];
+            if (!product) {
+                return res.status(400).json({ message: `Product not found: ${item.name || item.product}` });
+            }
+            if (!product.inStock) {
+                return res.status(400).json({ message: `${product.name} is currently out of stock` });
             }
         }
 
-        const { customerName, items, note, total, isAnonymous } = req.body;
+        // Check availability (day + time) for pre-order detection
+        let isPreOrder = false;
+        let latestDeliveryDate = null;
+
+        if (settings) {
+            for (const item of items) {
+                const product = productMap[item.product];
+                const availableDays = product.availableDays && product.availableDays.length > 0
+                    ? product.availableDays
+                    : [1, 2, 3, 4, 5]; // Default Mon-Fri
+
+                const nextDate = getNextAvailableDate(availableDays, settings.openTime, settings.closeTime);
+                if (nextDate) {
+                    isPreOrder = true;
+                    if (!latestDeliveryDate || nextDate > latestDeliveryDate) {
+                        latestDeliveryDate = nextDate;
+                    }
+                }
+            }
+        }
+
         const order = new Order({
             customerName,
             items,
             note,
             total,
             isAnonymous: !!isAnonymous,
+            isPreOrder,
+            estimatedDeliveryDate: latestDeliveryDate,
             paymentDescription: settings ? settings.paymentDescription : '',
         });
 
