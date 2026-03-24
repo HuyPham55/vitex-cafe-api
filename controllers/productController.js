@@ -52,6 +52,15 @@ const addProduct = async (req, res) => {
             }
         }
 
+        // Parse availableDays if sent as string
+        if (typeof productData.availableDays === 'string') {
+            try {
+                productData.availableDays = JSON.parse(productData.availableDays);
+            } catch (e) {
+                productData.availableDays = productData.availableDays.split(',').map(Number).filter(n => !isNaN(n));
+            }
+        }
+
         const newProduct = new Product(productData);
         const product = await newProduct.save();
         res.status(201).json(product);
@@ -81,6 +90,15 @@ const updateProduct = async (req, res) => {
                 productData.variantTypes = JSON.parse(productData.variantTypes);
             } catch (e) {
                 productData.variantTypes = productData.variantTypes.split(',').filter(id => id.trim());
+            }
+        }
+
+        // Parse availableDays if sent as string
+        if (typeof productData.availableDays === 'string') {
+            try {
+                productData.availableDays = JSON.parse(productData.availableDays);
+            } catch (e) {
+                productData.availableDays = productData.availableDays.split(',').map(Number).filter(n => !isNaN(n));
             }
         }
 

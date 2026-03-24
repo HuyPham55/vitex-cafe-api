@@ -27,6 +27,10 @@ const productSchema = new mongoose.Schema(
             type: Number,
             default: 0,
         },
+        availableDays: {
+            type: [Number],
+            default: [1, 2, 3, 4, 5], // Mon-Fri (0=Sun, 6=Sat)
+        },
         imageUrl: {
             type: String,
         },
