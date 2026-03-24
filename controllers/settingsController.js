@@ -95,6 +95,18 @@ const updateSettings = async (req, res) => {
             settings.favicon = null;
         }
 
+        // Handle seo image
+        if (req.files?.seoImage) {
+            const file = req.files.seoImage[0];
+            const blob = await put(file.originalname, file.buffer, {
+                access: 'public',
+                allowOverwrite: true,
+            });
+            settings.seoImage = blob.url;
+        } else if (req.body.removeSeoImage === 'true') {
+            settings.seoImage = null;
+        }
+
             const savedSettings = await settings.save();
             res.json(savedSettings);
     } catch (error) {

@@ -11,7 +11,8 @@ router.route('/')
         { name: 'newGalleryImages', maxCount: 10 },
         { name: 'paymentQRCode', maxCount: 1 },
         { name: 'logo', maxCount: 1 },
-        { name: 'favicon', maxCount: 1 }
+        { name: 'favicon', maxCount: 1 },
+        { name: 'seoImage', maxCount: 1 }
     ]), updateSettings);
 
 module.exports = router;
