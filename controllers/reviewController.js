@@ -26,6 +26,8 @@ const createReview = async (req, res) => {
                 req.files.map(async (file) => {
                     const blob = await put(file.originalname, file.buffer, {
                         access: 'public',
+                        addRandomSuffix: false,
+                        allowOverwrite: true,
                     });
                     return blob.url;
                 })

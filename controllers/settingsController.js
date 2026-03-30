@@ -37,6 +37,8 @@ const updateSettings = async (req, res) => {
             heroFiles.map(async (file) => {
                 const blob = await put(file.originalname, file.buffer, {
                     access: 'public',
+                    addRandomSuffix: false,
+                    allowOverwrite: true,
                 });
                 return blob.url;
             })
@@ -54,6 +56,8 @@ const updateSettings = async (req, res) => {
             galleryFiles.map(async (file) => {
                 const blob = await put(file.originalname, file.buffer, {
                     access: 'public',
+                    addRandomSuffix: false,
+                    allowOverwrite: true,
                 });
                 return blob.url;
             })
@@ -65,6 +69,8 @@ const updateSettings = async (req, res) => {
             const file = req.files.paymentQRCode[0];
             const blob = await put(file.originalname, file.buffer, {
                 access: 'public',
+                addRandomSuffix: false,
+                allowOverwrite: true,
             });
             settings.paymentQRCode = blob.url;
         } else if (req.body.removePaymentQRCode === 'true') {
@@ -76,6 +82,7 @@ const updateSettings = async (req, res) => {
             const file = req.files.logo[0];
             const blob = await put(file.originalname, file.buffer, {
                 access: 'public',
+                addRandomSuffix: false,
                 allowOverwrite: true,
             });
             settings.logo = blob.url;
@@ -88,6 +95,7 @@ const updateSettings = async (req, res) => {
             const file = req.files.favicon[0];
             const blob = await put(file.originalname, file.buffer, {
                 access: 'public',
+                addRandomSuffix: false,
                 allowOverwrite: true,
             });
             settings.favicon = blob.url;
@@ -100,6 +108,7 @@ const updateSettings = async (req, res) => {
             const file = req.files.seoImage[0];
             const blob = await put(file.originalname, file.buffer, {
                 access: 'public',
+                addRandomSuffix: false,
                 allowOverwrite: true,
             });
             settings.seoImage = blob.url;

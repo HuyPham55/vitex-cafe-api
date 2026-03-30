@@ -38,6 +38,8 @@ const addProduct = async (req, res) => {
         if (req.file) {
             const blob = await put(req.file.originalname, req.file.buffer, {
                 access: 'public',
+                addRandomSuffix: false,
+                allowOverwrite: true,
             });
             productData.imageUrl = blob.url;
         }
@@ -80,6 +82,8 @@ const updateProduct = async (req, res) => {
         if (req.file) {
             const blob = await put(req.file.originalname, req.file.buffer, {
                 access: 'public',
+                addRandomSuffix: false,
+                allowOverwrite: true,
             });
             productData.imageUrl = blob.url;
         }

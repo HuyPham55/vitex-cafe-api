@@ -40,6 +40,8 @@ const addAsmrVideo = async (req, res) => {
 
         const blob = await put(req.file.originalname, req.file.buffer, {
             access: 'public',
+            addRandomSuffix: false,
+            allowOverwrite: true,
         });
         const videoUrl = blob.url;
 
@@ -70,6 +72,8 @@ const updateAsmrVideo = async (req, res) => {
         if (req.file) {
             const blob = await put(req.file.originalname, req.file.buffer, {
                 access: 'public',
+                addRandomSuffix: false,
+                allowOverwrite: true,
             });
             updateData.videoUrl = blob.url;
         }
