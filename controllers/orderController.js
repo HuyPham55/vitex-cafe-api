@@ -224,6 +224,116 @@ const selfPay = async (req, res) => {
     }
 };
 
+// @desc    Update order items (admin only)
+// @route   PATCH /api/orders/:id/items
+// @access  Private/Admin
+const updateOrderItems = async (req, res) => {
+    try {
+        const order = await Order.findById(req.params.id);
+        if (!order) return res.status(404).json({ message: 'Order not found' });
+
+        const { items, note, total, customerName, isAnonymous } = req.body;
+        const settings = await StoreSettings.findOne();
+
+        // Recalculate isPreOrder and estimatedDeliveryDate if items changed
+        const productIds = items.map(item => item.product);
+        const products = await Product.find({ _id: { $in: productIds } });
+        const productMap = {};
+        products.forEach(p => { productMap[p._id.toString()] = p; });
+
+        let isPreOrder = false;
+        let latestDeliveryDate = null;
+
+        if (settings) {
+            for (const item of items) {
+                const product = productMap[item.product];
+                if (!product) continue;
+                const availableDays = product.availableDays && product.availableDays.length > 0
+                    ? product.availableDays
+                    : [1, 2, 3, 4, 5];
+
+                const nextDate = getNextAvailableDate(availableDays, settings.openTime, settings.closeTime);
+                if (nextDate) {
+                    isPreOrder = true;
+                    if (!latestDeliveryDate || nextDate > latestDeliveryDate) {
+                        latestDeliveryDate = nextDate;
+                    }
+                }
+            }
+        }
+
+        order.items = items;
+        order.note = note !== undefined ? note : order.note;
+        order.customerName = isAnonymous ? 'Anonymous' : customerName || order.customerName;
+        order.isAnonymous = isAnonymous !== undefined ? isAnonymous : order.isAnonymous;
+        order.total = total;
+        order.isPreOrder = isPreOrder;
+        order.estimatedDeliveryDate = latestDeliveryDate;
+
+        const updatedOrder = await order.save();
+        res.json(updatedOrder);
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+};
+
+// @desc    Create new order by admin (bypasses stock check)
+// @route   POST /api/orders/admin
+// @access  Private/Admin
+const createOrderByAdmin = async (req, res) => {
+    try {
+        const settings = await StoreSettings.findOne();
+        const { customerName, items, note, total, isAnonymous } = req.body;
+
+        const productIds = items.map(item => item.product);
+        const products = await Product.find({ _id: { $in: productIds } });
+        const productMap = {};
+        products.forEach(p => { productMap[p._id.toString()] = p; });
+
+        // Check availability (day + time) for pre-order detection
+        let isPreOrder = false;
+        let latestDeliveryDate = null;
+
+        if (settings) {
+            for (const item of items) {
+                const product = productMap[item.product];
+                if (!product) {
+                    return res.status(400).json({ message: `Product not found: ${item.name || item.product}` });
+                }
+                const availableDays = product.availableDays && product.availableDays.length > 0
+                    ? product.availableDays
+                    : [1, 2, 3, 4, 5];
+
+                const nextDate = getNextAvailableDate(availableDays, settings.openTime, settings.closeTime);
+                if (nextDate) {
+                    isPreOrder = true;
+                    if (!latestDeliveryDate || nextDate > latestDeliveryDate) {
+                        latestDeliveryDate = nextDate;
+                    }
+                }
+            }
+        }
+
+        const order = new Order({
+            customerName,
+            items,
+            note,
+            total,
+            isAnonymous: !!isAnonymous,
+            isPreOrder,
+            estimatedDeliveryDate: latestDeliveryDate,
+            paymentDescription: settings ? settings.paymentDescription : '',
+            paymentStatus: 'paid', // Admin orders usually assumed paid or handled manually
+            status: 'pending'
+        });
+
+        const createdOrder = await order.save();
+        res.status(201).json(createdOrder);
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+};
+
 module.exports = {
     createOrder,
     getOrders,
@@ -232,4 +342,6 @@ module.exports = {
     updatePaymentStatus,
     updateOrderStatus,
     selfPay,
+    updateOrderItems,
+    createOrderByAdmin,
 };
