@@ -1,5 +1,18 @@
 const jwt = require('jsonwebtoken');
 
+const optionalAuth = (req, res, next) => {
+    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+        try {
+            const token = req.headers.authorization.split(' ')[1];
+            const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret');
+            req.user = decoded;
+        } catch (error) {
+            console.error('Optional auth token validation error:', error.message);
+        }
+    }
+    next();
+};
+
 const protect = (req, res, next) => {
     let token;
 
@@ -7,17 +20,18 @@ const protect = (req, res, next) => {
         try {
             token = req.headers.authorization.split(' ')[1];
             const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret');
+            req.user = decoded;
             req.admin = decoded;
-            next();
+            return next();
         } catch (error) {
             console.error(error);
-            res.status(401).json({ message: 'Not authorized, token failed' });
+            return res.status(401).json({ message: 'Not authorized, token failed' });
         }
     }
 
     if (!token) {
-        res.status(401).json({ message: 'Not authorized, no token' });
+        return res.status(401).json({ message: 'Not authorized, no token' });
     }
 };
 
-module.exports = { protect };
+module.exports = { protect, optionalAuth };
