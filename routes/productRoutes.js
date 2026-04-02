@@ -6,6 +6,7 @@ const {
     addProduct,
     updateProduct,
     deleteProduct,
+    toggleHidden,
 } = require('../controllers/productController');
 const { protect } = require('../middleware/authMiddleware');
 const { imageUpload } = require('../middleware/uploadMiddleware');
@@ -14,6 +15,9 @@ const { imageUpload } = require('../middleware/uploadMiddleware');
 router.route('/')
     .get(getProducts)
     .post(protect, imageUpload.single('image'), addProduct);
+
+router.route('/:id/toggle-hidden')
+    .patch(protect, toggleHidden);
 
 router.route('/:id')
     .get(getProductById)

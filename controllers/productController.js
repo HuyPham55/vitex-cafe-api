@@ -1,13 +1,30 @@
 const Product = require('../models/Product');
 const { put } = require('@vercel/blob');
 
-// @desc    Get all products
+// @desc    Get all products (hidden filtered for public; ?showAll=true for admin)
 // @route   GET /api/products
 // @access  Public
 const getProducts = async (req, res) => {
     try {
-        const products = await Product.find().populate('variantTypes').sort({ order: 1, createdAt: -1 });
+        const filter = req.query.showAll === 'true' ? {} : { isHidden: { $ne: true } };
+        const products = await Product.find(filter).populate('variantTypes').sort({ order: 1, createdAt: -1 });
         res.json(products);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+};
+
+// @desc    Toggle product visibility (hide/show)
+// @route   PATCH /api/products/:id/toggle-hidden
+// @access  Private/Admin
+const toggleHidden = async (req, res) => {
+    try {
+        const product = await Product.findById(req.params.id);
+        if (!product) return res.status(404).json({ message: 'Product not found' });
+        product.isHidden = !product.isHidden;
+        await product.save();
+        res.json(product);
     } catch (err) {
         console.error(err.message);
         res.status(500).send('Server Error');
@@ -131,4 +148,5 @@ module.exports = {
     addProduct,
     updateProduct,
     deleteProduct,
+    toggleHidden,
 };
