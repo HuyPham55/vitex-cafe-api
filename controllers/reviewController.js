@@ -49,4 +49,43 @@ const createReview = async (req, res) => {
     }
 };
 
-module.exports = { getReviews, createReview };
+// @desc    Get review summaries for all products (avg rating, count, latest review)
+// @route   GET /api/reviews
+// @access  Public
+const getReviewSummaries = async (req, res) => {
+    try {
+        const summaries = await Review.aggregate([
+            { $sort: { createdAt: -1 } },
+            {
+                $group: {
+                    _id: '$product',
+                    avgRating: { $avg: '$rating' },
+                    reviewCount: { $sum: 1 },
+                    latestReviewComment: { $first: '$comment' },
+                    latestReviewCustomer: { $first: '$customerName' },
+                    latestReviewRating: { $first: '$rating' },
+                }
+            }
+        ]);
+
+        // Convert to a map keyed by product ID for easy lookup
+        const result = {};
+        summaries.forEach(s => {
+            result[s._id.toString()] = {
+                avgRating: Math.round(s.avgRating * 10) / 10,
+                reviewCount: s.reviewCount,
+                latestReview: {
+                    comment: s.latestReviewComment,
+                    customerName: s.latestReviewCustomer,
+                    rating: s.latestReviewRating,
+                },
+            };
+        });
+
+        res.json(result);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+module.exports = { getReviews, createReview, getReviewSummaries };
