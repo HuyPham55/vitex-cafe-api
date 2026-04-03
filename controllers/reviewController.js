@@ -88,4 +88,24 @@ const getReviewSummaries = async (req, res) => {
     }
 };
 
-module.exports = { getReviews, createReview, getReviewSummaries };
+// @desc    Get latest reviews across all products
+// @route   GET /api/reviews/latest
+// @access  Public
+const getLatestReviews = async (req, res) => {
+    try {
+        const limit = parseInt(req.query.limit) || 6;
+        const reviews = await Review.find()
+            .sort({ createdAt: -1 })
+            .limit(limit)
+            .populate('product', 'name _id');
+
+        // Filter out reviews whose product was deleted
+        const validReviews = reviews.filter(r => r.product);
+        res.json(validReviews);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+module.exports = { getReviews, createReview, getReviewSummaries, getLatestReviews };
+
