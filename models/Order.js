@@ -47,6 +47,7 @@ const orderSchema = new mongoose.Schema(
         isPreOrder: { type: Boolean, default: false },
         estimatedDeliveryDate: { type: Date },
         isAnonymous: { type: Boolean, default: false },
+        discountCode: { type: String, trim: true },
     },
     { timestamps: true }
 );
