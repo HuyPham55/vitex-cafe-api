@@ -1,6 +1,7 @@
 const Order = require('../models/Order');
 const Product = require('../models/Product');
 const StoreSettings = require('../models/StoreSettings');
+const Discount = require('../models/Discount');
 
 // Helper: get next available date for a product given its availableDays and store hours
 function getNextAvailableDate(availableDays, openTime, closeTime) {
@@ -48,7 +49,7 @@ function getNextAvailableDate(availableDays, openTime, closeTime) {
 const createOrder = async (req, res) => {
     try {
         const settings = await StoreSettings.findOne();
-        const { customerName, items, note, total, isAnonymous } = req.body;
+        const { customerName, items, note, total, isAnonymous, discountCode } = req.body;
 
         // Check stock status for all items
         const productIds = items.map(item => item.product);
@@ -87,18 +88,45 @@ const createOrder = async (req, res) => {
             }
         }
 
+        let validDiscount = null;
+        if (discountCode) {
+            const discount = await Discount.findOne({ code: discountCode.trim().toUpperCase() });
+            if (!discount || !discount.isActive) return res.status(400).json({ message: 'Invalid or inactive discount code' });
+            if (discount.expiresAt && new Date() > discount.expiresAt) return res.status(400).json({ message: 'Discount code has expired' });
+            if (discount.quantity !== null && discount.quantity !== undefined && discount.usedCount >= discount.quantity) return res.status(400).json({ message: 'Discount code limit reached' });
+            
+            let applies = false;
+            const applicableIds = discount.applicableProducts.map(id => id.toString());
+            if (applicableIds.length === 0) applies = true;
+            else {
+                for (const item of items) {
+                    if (applicableIds.includes(item.product.toString())) applies = true;
+                }
+            }
+            if (!applies) return res.status(400).json({ message: 'Discount code not applicable to this order' });
+
+            validDiscount = discount;
+        }
+
         const order = new Order({
             customerName,
             items,
             note,
             total,
             isAnonymous: !!isAnonymous,
+            discountCode: validDiscount ? validDiscount.code : undefined,
             isPreOrder,
             estimatedDeliveryDate: latestDeliveryDate,
             paymentDescription: settings ? settings.paymentDescription : '',
         });
 
         const createdOrder = await order.save();
+
+        if (validDiscount) {
+            validDiscount.usedCount += 1;
+            await validDiscount.save();
+        }
+
         res.status(201).json(createdOrder);
     } catch (error) {
         res.status(400).json({ message: error.message });
