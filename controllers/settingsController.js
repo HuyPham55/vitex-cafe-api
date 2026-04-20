@@ -116,6 +116,58 @@ const updateSettings = async (req, res) => {
             settings.seoImage = null;
         }
 
+        // Handle about hero image
+        if (req.files?.aboutHeroImage) {
+            const file = req.files.aboutHeroImage[0];
+            const blob = await put(file.originalname, file.buffer, {
+                access: 'public',
+                addRandomSuffix: false,
+                allowOverwrite: true,
+            });
+            settings.aboutHeroImage = blob.url;
+        } else if (req.body.removeAboutHeroImage === 'true') {
+            settings.aboutHeroImage = null;
+        }
+
+        // Handle about founder 1 photo
+        if (req.files?.aboutFounder1Photo) {
+            const file = req.files.aboutFounder1Photo[0];
+            const blob = await put(file.originalname, file.buffer, {
+                access: 'public',
+                addRandomSuffix: false,
+                allowOverwrite: true,
+            });
+            settings.aboutFounder1Photo = blob.url;
+        } else if (req.body.removeAboutFounder1Photo === 'true') {
+            settings.aboutFounder1Photo = null;
+        }
+
+        // Handle about founder 2 photo
+        if (req.files?.aboutFounder2Photo) {
+            const file = req.files.aboutFounder2Photo[0];
+            const blob = await put(file.originalname, file.buffer, {
+                access: 'public',
+                addRandomSuffix: false,
+                allowOverwrite: true,
+            });
+            settings.aboutFounder2Photo = blob.url;
+        } else if (req.body.removeAboutFounder2Photo === 'true') {
+            settings.aboutFounder2Photo = null;
+        }
+
+        // Handle about quality image
+        if (req.files?.aboutQualityImage) {
+            const file = req.files.aboutQualityImage[0];
+            const blob = await put(file.originalname, file.buffer, {
+                access: 'public',
+                addRandomSuffix: false,
+                allowOverwrite: true,
+            });
+            settings.aboutQualityImage = blob.url;
+        } else if (req.body.removeAboutQualityImage === 'true') {
+            settings.aboutQualityImage = null;
+        }
+
             const savedSettings = await settings.save();
             res.json(savedSettings);
     } catch (error) {

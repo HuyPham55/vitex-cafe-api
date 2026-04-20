@@ -12,7 +12,11 @@ router.route('/')
         { name: 'paymentQRCode', maxCount: 1 },
         { name: 'logo', maxCount: 1 },
         { name: 'favicon', maxCount: 1 },
-        { name: 'seoImage', maxCount: 1 }
+        { name: 'seoImage', maxCount: 1 },
+        { name: 'aboutHeroImage', maxCount: 1 },
+        { name: 'aboutFounder1Photo', maxCount: 1 },
+        { name: 'aboutFounder2Photo', maxCount: 1 },
+        { name: 'aboutQualityImage', maxCount: 1 },
     ]), updateSettings);
 
 module.exports = router;
