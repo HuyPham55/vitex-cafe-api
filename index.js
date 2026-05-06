@@ -13,6 +13,7 @@ const asmrRoutes = require('./routes/asmrRoutes');
 const orderRoutes = require('./routes/orderRoutes');
 const reviewRoutes = require('./routes/reviewRoutes');
 const discountRoutes = require('./routes/discountRoutes');
+const lunchRoutes = require('./routes/lunchRoutes');
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -68,6 +69,7 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/asmr', asmrRoutes);
 app.use('/api/discounts', discountRoutes);
+app.use('/api/lunch', lunchRoutes);
 
 // Basic Route
 app.get('/', (req, res) => {

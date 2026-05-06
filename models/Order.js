@@ -16,7 +16,6 @@ const orderSchema = new mongoose.Schema(
                 product: {
                     type: mongoose.Schema.Types.ObjectId,
                     ref: 'Product',
-                    required: true,
                 },
                 name: String,
                 quantity: { type: Number, default: 1 },
@@ -48,9 +47,28 @@ const orderSchema = new mongoose.Schema(
         estimatedDeliveryDate: { type: Date },
         isAnonymous: { type: Boolean, default: false },
         discountCode: { type: String, trim: true },
+        type: {
+            type: String,
+            enum: ['coffee', 'lunch'],
+            default: 'coffee',
+            index: true,
+        },
+        queueNumber: { type: Number },
+        lunchDate: { type: String, index: true },
+        paymentMethod: {
+            type: String,
+            enum: ['pay_later', 'pay_now'],
+            default: 'pay_later',
+        },
+        lunchSelection: {
+            mains: [{ type: String }],
+            vegetable: { type: String },
+        },
     },
     { timestamps: true }
 );
+
+orderSchema.index({ type: 1, lunchDate: 1, queueNumber: 1 });
 
 // Auto-increment orderNumber (simplified for this task)
 orderSchema.pre('save', async function (next) {
