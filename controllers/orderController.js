@@ -142,6 +142,9 @@ const getOrders = async (req, res) => {
         if (req.query.status) {
             filter.status = { $in: req.query.status.split(',') };
         }
+        if (req.query.type && req.query.type !== 'all') {
+            filter.type = req.query.type;
+        }
         const orders = await Order.find(filter).sort({ createdAt: -1 });
 
         // Mask names for unauthenticated requests (public live status)
