@@ -228,14 +228,17 @@ const createLunchOrder = async (req, res) => {
         if (!customerName || !customerName.trim()) {
             return res.status(400).json({ message: 'Name is required' });
         }
-        if (!Array.isArray(mains) || mains.length === 0) {
-            return res.status(400).json({ message: 'Select at least one main dish' });
+
+        const settings = await getOrCreateSettings();
+        const minMains = settings.baseMainsLimit || 3;
+
+        if (!Array.isArray(mains) || mains.length < minMains) {
+            return res.status(400).json({ message: `Select at least ${minMains} main dishes` });
         }
         if (!vegetable) {
             return res.status(400).json({ message: 'Select one vegetable' });
         }
 
-        const settings = await getOrCreateSettings();
         const date = todayStr();
 
         // Cutoff enforcement (only enforce when settings.cutoffDate matches today)
