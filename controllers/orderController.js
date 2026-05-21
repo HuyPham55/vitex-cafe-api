@@ -43,6 +43,33 @@ function getNextAvailableDate(availableDays, openTime, closeTime) {
     return null;
 }
 
+function getTodayRangeVN() {
+    const now = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Ho_Chi_Minh' }));
+    const start = new Date(now);
+    start.setHours(0, 0, 0, 0);
+    const end = new Date(now);
+    end.setHours(23, 59, 59, 999);
+    return { start, end };
+}
+
+function buildOrderFilter(query, { includeDate = false, includePayment = false } = {}) {
+    const filter = {};
+    if (query.status) {
+        filter.status = { $in: query.status.split(',') };
+    }
+    if (query.type && query.type !== 'all') {
+        filter.type = query.type;
+    }
+    if (includePayment && query.paymentStatus && query.paymentStatus !== 'all') {
+        filter.paymentStatus = query.paymentStatus;
+    }
+    if (includeDate && query.date === 'today') {
+        const { start, end } = getTodayRangeVN();
+        filter.createdAt = { $gte: start, $lte: end };
+    }
+    return filter;
+}
+
 // @desc    Create new order
 // @route   POST /api/orders
 // @access  Public
@@ -138,13 +165,31 @@ const createOrder = async (req, res) => {
 // @access  Private/Admin
 const getOrders = async (req, res) => {
     try {
-        const filter = {};
-        if (req.query.status) {
-            filter.status = { $in: req.query.status.split(',') };
+        const isPaginated = req.user && req.query.page !== undefined && req.query.page !== '';
+
+        if (isPaginated) {
+            const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+            const limit = Math.min(50, Math.max(1, parseInt(req.query.limit, 10) || 20));
+            const filter = buildOrderFilter(req.query, { includeDate: true, includePayment: true });
+
+            const total = await Order.countDocuments(filter);
+            const orders = await Order.find(filter)
+                .sort({ createdAt: -1 })
+                .skip((page - 1) * limit)
+                .limit(limit);
+
+            return res.json({
+                orders,
+                pagination: {
+                    page,
+                    limit,
+                    total,
+                    totalPages: Math.max(1, Math.ceil(total / limit)),
+                },
+            });
         }
-        if (req.query.type && req.query.type !== 'all') {
-            filter.type = req.query.type;
-        }
+
+        const filter = buildOrderFilter(req.query, { includeDate: false, includePayment: false });
         const orders = await Order.find(filter).sort({ createdAt: -1 });
 
         // Mask names for unauthenticated requests (public live status)
