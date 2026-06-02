@@ -308,7 +308,7 @@ const updateOrderItems = async (req, res) => {
         const order = await Order.findById(req.params.id);
         if (!order) return res.status(404).json({ message: 'Order not found' });
 
-        const { items, note, total, customerName, isAnonymous } = req.body;
+        const { items, note, total, customerName, isAnonymous, type } = req.body;
         const settings = await StoreSettings.findOne();
 
         // Recalculate isPreOrder and estimatedDeliveryDate if items changed
@@ -343,6 +343,7 @@ const updateOrderItems = async (req, res) => {
         order.customerName = isAnonymous ? 'Anonymous' : customerName || order.customerName;
         order.isAnonymous = isAnonymous !== undefined ? isAnonymous : order.isAnonymous;
         order.total = total;
+        if (type === 'coffee' || type === 'lunch') order.type = type;
         order.isPreOrder = isPreOrder;
         order.estimatedDeliveryDate = latestDeliveryDate;
 
